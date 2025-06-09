@@ -60,7 +60,9 @@ app.post("/submit", (req, res) => {
 
   // 🎯 Precise location of PENSA UEW (from OpenStreetMap)
   const CHURCH_LOCATION = { lat: 5.33888, lng: -0.62795 };
-  const MAX_DISTANCE_METERS = 100;
+  const MAX_DISTANCE_METERS = 300;
+
+
 
   if (!name) return res.status(400).send("Name is required.");
   if (isNaN(userLat) || isNaN(userLng)) return res.status(400).send("Location is required.");
