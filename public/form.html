@@ -2,27 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Check-in Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Church Attendance</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Church Attendance Check-In</h1>
-  <form id="checkin-form" method="POST" action="/submit">
+  <h1>Church Attendance</h1>
+  <form action="/submit" method="POST" onsubmit="return getLocation();">
     <input type="text" name="name" placeholder="Enter your name" required />
     <input type="hidden" name="latitude" id="latitude" />
     <input type="hidden" name="longitude" id="longitude" />
-    <button type="submit">Submit</button>
+    <button type="submit">Submit Attendance</button>
   </form>
 
   <script>
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        document.getElementById("latitude").value = pos.coords.latitude;
-        document.getElementById("longitude").value = pos.coords.longitude;
-      },
-      err => {
-        alert("Location permission is required.");
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            document.getElementById("latitude").value = position.coords.latitude;
+            document.getElementById("longitude").value = position.coords.longitude;
+            document.querySelector("form").submit();
+          },
+          function() {
+            alert("Please allow location access to submit attendance.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser.");
       }
-    );
+      return false;
+    }
   </script>
 </body>
 </html>
