@@ -27,7 +27,7 @@ function saveAttendees(attendees) {
   );
 }
 
-// Haversine formula to calculate distance in meters
+// Calculate distance between two coordinates (in meters)
 function getDistanceMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -35,36 +35,44 @@ function getDistanceMeters(lat1, lon1, lat2, lon2) {
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
 
-// Routes
+// Endpoint to get list of attendees
 app.get("/attendees", (req, res) => {
   const attendees = loadAttendees();
   res.json(attendees);
 });
 
+// Endpoint to handle attendance form submission
 app.post("/submit", (req, res) => {
   const name = req.body.name?.trim();
-  const lat = parseFloat(req.body.latitude);
-  const lng = parseFloat(req.body.longitude);
+  const userLat = parseFloat(req.body.latitude);
+  const userLng = parseFloat(req.body.longitude);
 
   const CHURCH_LOCATION = { lat: 5.614818, lng: -0.205874 };
   const MAX_DISTANCE_METERS = 100;
 
+  // Validation checks
   if (!name) return res.status(400).send("Name is required.");
-  if (isNaN(lat) || isNaN(lng)) return res.status(400).send("Location is required.");
+  if (isNaN(userLat) || isNaN(userLng)) return res.status(400).send("Location is required.");
 
-  const distance = getDistanceMeters(lat, lng, CHURCH_LOCATION.lat, CHURCH_LOCATION.lng);
+  const distance = getDistanceMeters(userLat, userLng, CHURCH_LOCATION.lat, CHURCH_LOCATION.lng);
+
   if (distance > MAX_DISTANCE_METERS) {
     return res.status(403).send("You are too far from the church location.");
   }
 
   const attendees = loadAttendees();
   const existing = attendees.find(a => a.name.toLowerCase() === name.toLowerCase());
+
+  // Prevent duplicates
+  if (existing && existing.present) {
+    return res.status(409).send("You have already registered.");
+  }
 
   if (existing) {
     existing.present = true;
@@ -76,6 +84,7 @@ app.post("/submit", (req, res) => {
   res.redirect("/form.html");
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server is running at http://localhost:${PORT}`);
 });

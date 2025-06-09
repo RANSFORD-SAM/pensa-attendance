@@ -3,36 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Church Attendance</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Attendance Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f2f2f2;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      max-width: 400px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 1rem;
+      margin: 1rem 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 1rem;
+      width: 100%;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    #error {
+      color: red;
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <h1>Church Attendance</h1>
-  <form action="/submit" method="POST" onsubmit="return getLocation();">
-    <input type="text" name="name" placeholder="Enter your name" required />
-    <input type="hidden" name="latitude" id="latitude" />
-    <input type="hidden" name="longitude" id="longitude" />
-    <button type="submit">Submit Attendance</button>
+  <h1>Church Attendance Form</h1>
+  <form id="attendanceForm">
+    <input type="text" id="name" name="name" placeholder="Enter your name" required />
+    <button type="submit">Submit</button>
+    <div id="error"></div>
   </form>
 
   <script>
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          function(position) {
-            document.getElementById("latitude").value = position.coords.latitude;
-            document.getElementById("longitude").value = position.coords.longitude;
-            document.querySelector("form").submit();
-          },
-          function() {
-            alert("Please allow location access to submit attendance.");
-          }
-        );
-      } else {
-        alert("Geolocation is not supported by your browser.");
+    const form = document.getElementById("attendanceForm");
+    const errorDiv = document.getElementById("error");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+
+      if (!name) {
+        errorDiv.textContent = "Please enter your name.";
+        return;
       }
-      return false;
-    }
+
+      errorDiv.textContent = "Getting your location...";
+
+      if (!navigator.geolocation) {
+        errorDiv.textContent = "Geolocation is not supported by your browser.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          try {
+            const response = await fetch("/submit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: new URLSearchParams({ name, latitude, longitude }),
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              errorDiv.textContent = `Error: ${errorText}`;
+            } else {
+              window.location.href = "/form.html";
+            }
+          } catch (err) {
+            errorDiv.textContent = "Submission failed. Try again.";
+          }
+        },
+        () => {
+          errorDiv.textContent = "Unable to get your location.";
+        }
+      );
+    });
   </script>
 </body>
 </html>
