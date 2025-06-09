@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Attendees</title>
+</head>
+<body>
+  <h1>Present Attendees</h1>
+  <ul id="attendee-list"></ul>
+
+  <script>
+    async function loadAttendees() {
+      const res = await fetch("/attendees");
+      const attendees = await res.json();
+
+      const list = document.getElementById("attendee-list");
+      list.innerHTML = "";
+      attendees.forEach(att => {
+        const li = document.createElement("li");
+        li.textContent = att.name;
+        list.appendChild(li);
+      });
+    }
+
+    setInterval(loadAttendees, 2000);
+    loadAttendees();
+  </script>
+</body>
+</html>

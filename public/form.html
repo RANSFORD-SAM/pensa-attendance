@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Check-in Form</title>
+</head>
+<body>
+  <h1>Church Attendance Check-In</h1>
+  <form id="checkin-form" method="POST" action="/submit">
+    <input type="text" name="name" placeholder="Enter your name" required />
+    <input type="hidden" name="latitude" id="latitude" />
+    <input type="hidden" name="longitude" id="longitude" />
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        document.getElementById("latitude").value = pos.coords.latitude;
+        document.getElementById("longitude").value = pos.coords.longitude;
+      },
+      err => {
+        alert("Location permission is required.");
+      }
+    );
+  </script>
+</body>
+</html>

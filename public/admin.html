@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PENSA Attendees</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #e0ffe0;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>?? Attendees Present Today</h2>
+  <ul id="attendeeList">
+    <!-- Names will be inserted here -->
+  </ul>
+
+  <script>
+    function fetchAttendees() {
+      fetch("/attendees")
+        .then(response => response.json())
+        .then(data => {
+          const list = document.getElementById("attendeeList");
+          list.innerHTML = "";
+          data.forEach(att => {
+            if (att.present) {
+              const li = document.createElement("li");
+              li.textContent = att.name;
+              list.appendChild(li);
+            }
+          });
+        })
+        .catch(err => {
+          console.error("Error fetching attendees:", err);
+        });
+    }
+
+    // Refresh every 10 seconds
+    setInterval(fetchAttendees, 10000);
+    fetchAttendees(); // Initial call
+  </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PENSA Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f9;
+    }
+    h2 {
+      text-align: center;
+    }
+    .count {
+      font-size: 20px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #fff;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-left: 4px solid #28a745;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <h2>PENSA Attendees Today</h2>
+  <div class="count" id="count">Loading count...</div>
+  <ul id="attendeeList"></ul>
+
+  <script>
+    async function loadAttendees() {
+      try {
+        const res = await fetch("/attendees");
+        const data = await res.json();
+        document.getElementById("count").textContent = `Total Present: ${data.count}`;
+        const list = document.getElementById("attendeeList");
+        list.innerHTML = "";
+        data.attendees.forEach(attendee => {
+          const li = document.createElement("li");
+          li.textContent = attendee.name;
+          list.appendChild(li);
+        });
+      } catch (err) {
+        document.getElementById("count").textContent = "Error loading attendees.";
+      }
+    }
+
+    // Load attendees every 10 seconds
+    loadAttendees();
+    setInterval(loadAttendees, 10000);
+  </script>
+</body>
+</html>
