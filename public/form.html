@@ -3,105 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Attendance Form</title>
+  <title>PENSA Attendance Registration</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 2rem;
-      background-color: #f2f2f2;
+      text-align: center;
+      padding: 50px;
+      background-color: #f9f9f9;
     }
     h1 {
-      text-align: center;
+      font-size: 28px;
     }
-    form {
-      max-width: 400px;
-      margin: auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 1rem;
-      margin: 1rem 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    input {
+      padding: 12px;
+      font-size: 18px;
+      width: 250px;
     }
     button {
-      padding: 1rem;
-      width: 100%;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
+      padding: 12px 20px;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    .message {
+      margin-top: 20px;
+      font-size: 20px;
       font-weight: bold;
     }
-    #error {
+    .success {
+      color: green;
+    }
+    .error {
       color: red;
-      text-align: center;
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Church Attendance Form</h1>
-  <form id="attendanceForm">
-    <input type="text" id="name" name="name" placeholder="Enter your name" required />
+  <h1>Register Your Attendance</h1>
+  <form id="attendance-form">
+    <input type="text" id="name" name="name" placeholder="Enter your full name" required />
+    <br />
     <button type="submit">Submit</button>
-    <div id="error"></div>
   </form>
 
+  <div id="message" class="message"></div>
+
   <script>
-    const form = document.getElementById("attendanceForm");
-    const errorDiv = document.getElementById("error");
+    const form = document.getElementById("attendance-form");
+    const messageDiv = document.getElementById("message");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("name").value.trim();
 
+      messageDiv.textContent = "";
+      messageDiv.className = "message";
+
       if (!name) {
-        errorDiv.textContent = "Please enter your name.";
+        messageDiv.textContent = "Name cannot be empty.";
+        messageDiv.classList.add("error");
         return;
       }
 
-      errorDiv.textContent = "Getting your location...";
+      try {
+        const response = await fetch("/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: new URLSearchParams({ name })
+        });
 
-      if (!navigator.geolocation) {
-        errorDiv.textContent = "Geolocation is not supported by your browser.";
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-
-          try {
-            const response = await fetch("/submit", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-              },
-              body: new URLSearchParams({ name, latitude, longitude }),
-            });
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              errorDiv.textContent = `Error: ${errorText}`;
-            } else {
-              window.location.href = "/form.html";
-            }
-          } catch (err) {
-            errorDiv.textContent = "Submission failed. Try again.";
-          }
-        },
-        () => {
-          errorDiv.textContent = "Unable to get your location.";
+        if (response.ok) {
+          messageDiv.textContent = "✅ Registration successful!";
+          messageDiv.classList.add("success");
+          form.reset();
+        } else {
+          const errorText = await response.text();
+          messageDiv.textContent = `❌ Registration failed: ${errorText}`;
+          messageDiv.classList.add("error");
         }
-      );
+      } catch (error) {
+        messageDiv.textContent = "❌ Could not connect to the server.";
+        messageDiv.classList.add("error");
+      }
     });
   </script>
 </body>
