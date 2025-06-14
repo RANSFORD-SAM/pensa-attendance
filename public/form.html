@@ -8,84 +8,85 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding: 50px;
-      background-color: #f9f9f9;
+      padding: 40px;
     }
+
     h1 {
       font-size: 28px;
+      margin-bottom: 20px;
     }
-    input {
-      padding: 12px;
+
+    input[type="text"] {
+      padding: 10px;
       font-size: 18px;
       width: 250px;
+      margin-bottom: 20px;
     }
+
     button {
-      padding: 12px 20px;
+      padding: 10px 20px;
       font-size: 18px;
-      margin-top: 10px;
+      background-color: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
     }
-    .message {
+
+    #message {
       margin-top: 20px;
       font-size: 20px;
       font-weight: bold;
     }
-    .success {
-      color: green;
-    }
-    .error {
-      color: red;
-    }
   </style>
 </head>
 <body>
-  <h1>Register Your Attendance</h1>
-  <form id="attendance-form">
-    <input type="text" id="name" name="name" placeholder="Enter your full name" required />
+  <h1>Enter Your Name to Register</h1>
+  <form id="attendanceForm">
+    <input type="text" name="name" id="name" placeholder="Enter your name" required />
     <br />
     <button type="submit">Submit</button>
   </form>
 
-  <div id="message" class="message"></div>
+  <div id="message"></div>
 
   <script>
-    const form = document.getElementById("attendance-form");
-    const messageDiv = document.getElementById("message");
+    const form = document.getElementById('attendanceForm');
+    const messageDiv = document.getElementById('message');
 
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = document.getElementById("name").value.trim();
-
-      messageDiv.textContent = "";
-      messageDiv.className = "message";
+      const name = document.getElementById('name').value.trim();
 
       if (!name) {
-        messageDiv.textContent = "Name cannot be empty.";
-        messageDiv.classList.add("error");
+        messageDiv.textContent = 'Please enter your name.';
+        messageDiv.style.color = 'red';
         return;
       }
 
       try {
-        const response = await fetch("/submit", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-          },
-          body: new URLSearchParams({ name })
+        const response = await fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
         });
 
-        if (response.ok) {
-          messageDiv.textContent = "✅ Registration successful!";
-          messageDiv.classList.add("success");
-          form.reset();
+        const result = await response.json();
+
+        if (result.success) {
+          messageDiv.textContent = '✔️ Registration successful!';
+          messageDiv.style.color = 'green';
         } else {
-          const errorText = await response.text();
-          messageDiv.textContent = `❌ Registration failed: ${errorText}`;
-          messageDiv.classList.add("error");
+          messageDiv.textContent = '❌ ' + result.message;
+          messageDiv.style.color = 'red';
         }
-      } catch (error) {
-        messageDiv.textContent = "❌ Could not connect to the server.";
-        messageDiv.classList.add("error");
+      } catch (err) {
+        messageDiv.textContent = '❌ Something went wrong. Try again.';
+        messageDiv.style.color = 'red';
       }
+
+      // Clear name field after submission
+      document.getElementById('name').value = '';
     });
   </script>
 </body>
