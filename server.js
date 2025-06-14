@@ -10,7 +10,7 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Load attendees from JSON
+// Helper functions
 function loadAttendees() {
   try {
     const data = fs.readFileSync(path.join(__dirname, "public", "attendees.json"), "utf-8");
@@ -20,7 +20,6 @@ function loadAttendees() {
   }
 }
 
-// Save attendees to JSON
 function saveAttendees(attendees) {
   fs.writeFileSync(path.join(__dirname, "public", "attendees.json"), JSON.stringify(attendees, null, 2));
 }
@@ -34,7 +33,9 @@ app.get("/attendees", (req, res) => {
 app.post("/submit", (req, res) => {
   const name = req.body.name?.trim();
 
-  if (!name) return res.status(400).send("Name is required.");
+  if (!name) {
+    return res.status(400).send("Name is required.");
+  }
 
   const attendees = loadAttendees();
   const existing = attendees.find(a => a.name.toLowerCase() === name.toLowerCase());
@@ -49,7 +50,6 @@ app.post("/submit", (req, res) => {
   res.redirect("/form.html");
 });
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`✅ Server is running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
