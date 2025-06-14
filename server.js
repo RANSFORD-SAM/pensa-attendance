@@ -1,34 +1,19 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-const PORT = process.env.PORT || 10000;
-
-// Middleware
 app.use(express.static("public"));
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Helper functions
-function loadAttendees() {
-  try {
-    const data = fs.readFileSync(path.join(__dirname, "public", "attendees.json"), "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
+const membersPath = path.join(__dirname, "public", "members.json");
+const attendeesPath = path.join(__dirname, "public", "attendees.json");
 
-function saveAttendees(attendees) {
-  fs.writeFileSync(path.join(__dirname, "public", "attendees.json"), JSON.stringify(attendees, null, 2));
-}
-
-// Routes
-app.get("/attendees", (req, res) => {
-  const attendees = loadAttendees();
-  res.json(attendees);
-});
+// Ensure both files exist
+if (!fs.existsSync(membersPath)) fs.writeFileSync(membersPath, "[]");
+if (!fs.existsSync(attendeesPath)) fs.writeFileSync(attendeesPath, "[]");
 
 app.post("/submit", (req, res) => {
   const name = req.body.name?.trim();
@@ -37,19 +22,24 @@ app.post("/submit", (req, res) => {
     return res.status(400).send("Name is required.");
   }
 
-  const attendees = loadAttendees();
-  const existing = attendees.find(a => a.name.toLowerCase() === name.toLowerCase());
+  let members = JSON.parse(fs.readFileSync(membersPath));
+  let attendees = JSON.parse(fs.readFileSync(attendeesPath));
 
-  if (existing) {
-    existing.present = true;
-  } else {
-    attendees.push({ name, present: true });
+  // Add to members.json if new
+  if (!members.includes(name)) {
+    members.push(name);
+    fs.writeFileSync(membersPath, JSON.stringify(members, null, 2));
   }
 
-  saveAttendees(attendees);
-  res.redirect("/form.html");
+  // Add to attendees.json if not already marked present
+  if (!attendees.includes(name)) {
+    attendees.push(name);
+    fs.writeFileSync(attendeesPath, JSON.stringify(attendees, null, 2));
+  }
+
+  res.status(200).send("Successfully registered.");
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
