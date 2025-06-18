@@ -1,18 +1,4 @@
 <!DOCTYPE html>
-<<<<<<< HEAD
-<html>
-<head>
-  <title>PENSA Attendance</title>
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      margin-top: 100px;
-    }
-    input, button {
-      padding: 10px;
-      font-size: 18px;
-=======
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -78,18 +64,10 @@
 
     .error {
       color: red;
->>>>>>> 392df4134523e98c3ca15013e12982fd27407141
     }
   </style>
 </head>
 <body>
-<<<<<<< HEAD
-  <h1>PENSA Attendance Form</h1>
-  <form action="/submit" method="POST">
-    <input type="text" name="name" placeholder="Enter your name" required />
-    <button type="submit">Submit</button>
-  </form>
-=======
   <div class="form-container">
     <h2>PENSA Attendance</h2>
     <input type="text" id="name" placeholder="Enter your name" />
@@ -119,13 +97,14 @@
           body: JSON.stringify({ name })
         });
 
-        if (response.ok) {
-          messageEl.textContent = "Registration successful!";
+        const result = await response.json();
+
+        if (result.success) {
+          messageEl.textContent = result.message;
           messageEl.classList.add("success");
           nameInput.value = "";
         } else {
-          const errorText = await response.text();
-          messageEl.textContent = "Failed: " + errorText;
+          messageEl.textContent = "Failed: " + result.message;
           messageEl.classList.add("error");
         }
       } catch (err) {
@@ -135,6 +114,5 @@
       }
     }
   </script>
->>>>>>> 392df4134523e98c3ca15013e12982fd27407141
 </body>
 </html>
