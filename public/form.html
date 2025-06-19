@@ -2,25 +2,76 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PENSA Attendance</title>
   <style>
-    body { font-family: Arial; text-align: center; margin-top: 100px; }
-    input, button { padding: 10px; font-size: 18px; }
-    .message { margin-top: 20px; font-size: 20px; font-weight: bold; }
-    .success { color: green; }
-    .error { color: red; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #0a74da;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px;
+      width: 100%;
+      background-color: #0a74da;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0956a1;
+    }
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
   </style>
 </head>
 <body>
-  <h1>Register Attendance</h1>
-  <input type="text" id="name" placeholder="Enter your name" />
-  <button onclick="submitForm()">Submit</button>
-  <div id="message" class="message"></div>
+  <div class="card">
+    <h2>PENSA Attendance</h2>
+    <input type="text" id="name" placeholder="Enter your name" />
+    <button onclick="submitForm()">Mark Present</button>
+    <div class="message" id="message"></div>
+  </div>
 
   <script>
     async function submitForm() {
       const name = document.getElementById("name").value.trim();
       const message = document.getElementById("message");
+
       message.textContent = "";
       message.className = "message";
 
@@ -31,23 +82,22 @@
       }
 
       try {
-        const response = await fetch("/submit", {
+        const res = await fetch("/submit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name })
         });
 
-        const result = await response.json();
-        if (result.success) {
-          message.textContent = result.message;
+        const text = await res.text();
+        if (res.ok) {
+          message.textContent = text;
           message.classList.add("success");
         } else {
-          message.textContent = result.message;
+          message.textContent = "Failed: " + text;
           message.classList.add("error");
         }
       } catch (err) {
-        console.error(err);
-        message.textContent = "Something went wrong.";
+        message.textContent = "Server error occurred.";
         message.classList.add("error");
       }
     }
