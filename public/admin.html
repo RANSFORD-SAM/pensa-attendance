@@ -1,38 +1,4 @@
 <!DOCTYPE html>
-<<<<<<< HEAD
-<html>
-<head>
-  <title>Admin Dashboard</title>
-  <style>
-    body { font-family: Arial; }
-    h1 { color: #444; }
-    ul { font-size: 18px; }
-  </style>
-</head>
-<body>
-  <h1>List of Present Attendees</h1>
-  <ul id="attendeeList"></ul>
-
-  <script>
-    fetch("attendees.json")
-      .then(res => res.json())
-      .then(data => {
-        const list = document.getElementById("attendeeList");
-        list.innerHTML = "";
-        if (data.length === 0) {
-          list.innerHTML = "<li>No attendees found.</li>";
-        } else {
-          data.forEach(a => {
-            const li = document.createElement("li");
-            li.textContent = a.name;
-            list.appendChild(li);
-          });
-        }
-      })
-      .catch(err => {
-        document.getElementById("attendeeList").innerHTML = "<li>Error loading attendees</li>";
-      });
-=======
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -42,31 +8,36 @@
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
+      background-color: #f4f4f4;
     }
 
     h1 {
       text-align: center;
+      color: #333;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
+      padding: 12px;
+      border: 1px solid #ddd;
       text-align: left;
     }
 
     th {
-      background-color: #f2f2f2;
+      background-color: #eee;
     }
 
     #total {
-      margin-top: 10px;
+      margin-top: 15px;
       font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
@@ -77,40 +48,35 @@
     <thead>
       <tr>
         <th>Name</th>
-        <th>Present</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
   <script>
-    function fetchAttendees() {
-      fetch("/attendees")
-        .then(res => res.json())
-        .then(data => {
-          const tbody = document.querySelector("#attendeeTable tbody");
-          tbody.innerHTML = "";
+    async function fetchAttendees() {
+      try {
+        const res = await fetch("/attendees");
+        const data = await res.json();
 
-          data.forEach(attendee => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${attendee.name}</td>
-              <td>${attendee.present ? "✅" : "❌"}</td>
-            `;
-            tbody.appendChild(row);
-          });
+        const tbody = document.querySelector("#attendeeTable tbody");
+        tbody.innerHTML = "";
 
-          document.getElementById("total").textContent = `Total attendees: ${data.length}`;
-        })
-        .catch(err => {
-          console.error("Failed to fetch attendees:", err);
+        data.attendees.forEach(attendee => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${attendee.name}</td>`;
+          tbody.appendChild(row);
         });
+
+        document.getElementById("total").textContent = `Total attendees: ${data.count}`;
+      } catch (err) {
+        document.getElementById("total").textContent = "Error loading attendees.";
+        console.error(err);
+      }
     }
 
-    // Fetch every 5 seconds
-    fetchAttendees(); // initial load
-    setInterval(fetchAttendees, 5000);
->>>>>>> 392df4134523e98c3ca15013e12982fd27407141
+    fetchAttendees();
+    setInterval(fetchAttendees, 10000); // update every 10 seconds
   </script>
 </body>
 </html>

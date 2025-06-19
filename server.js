@@ -5,69 +5,57 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// File paths
-const membersPath = path.join(__dirname, "public", "members.json");
+// Paths to JSON files
 const attendeesPath = path.join(__dirname, "public", "attendees.json");
 
-// Ensure files exist
-function ensureFile(filePath) {
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, "[]");
-  }
+// Create file if it doesn't exist
+if (!fs.existsSync(attendeesPath)) {
+  fs.writeFileSync(attendeesPath, "[]");
 }
-ensureFile(membersPath);
-ensureFile(attendeesPath);
 
+// Middlewares
 app.use(express.static("public"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// POST /submit
+// Route to handle registration
 app.post("/submit", (req, res) => {
   const name = req.body.name?.trim();
 
   if (!name) {
-    return res.status(400).json({ success: false, message: "Name is required." });
+    return res.status(400).json({ success: false, message: "Name is required" });
   }
 
+  let attendees;
   try {
-    let members = JSON.parse(fs.readFileSync(membersPath, "utf8"));
-    let attendees = JSON.parse(fs.readFileSync(attendeesPath, "utf8"));
+    attendees = JSON.parse(fs.readFileSync(attendeesPath));
+  } catch (e) {
+    attendees = [];
+  }
 
-    // Ensure both are arrays
-    if (!Array.isArray(members)) members = [];
-    if (!Array.isArray(attendees)) attendees = [];
+  const alreadyPresent = attendees.some(a => a.name.toLowerCase() === name.toLowerCase());
 
-    // Save to permanent list if not already in
-    if (!members.includes(name)) {
-      members.push(name);
-      fs.writeFileSync(membersPath, JSON.stringify(members, null, 2));
-    }
-
-    // Mark present for this service
-    if (!attendees.includes(name)) {
-      attendees.push(name);
-      fs.writeFileSync(attendeesPath, JSON.stringify(attendees, null, 2));
-    }
-
-    res.json({ success: true, message: "Registration successful!" });
-  } catch (err) {
-    console.error("ERROR in /submit:", err);
-    res.status(500).json({ success: false, message: "Server error occurred." });
+  if (!alreadyPresent) {
+    attendees.push({ name });
+    fs.writeFileSync(attendeesPath, JSON.stringify(attendees, null, 2));
+    return res.json({ success: true, message: "Registered successfully" });
+  } else {
+    return res.json({ success: true, message: "Already registered" });
   }
 });
 
-// GET /attendees
+// Route to return attendees for admin
 app.get("/attendees", (req, res) => {
+  let attendees = [];
   try {
-    const attendees = JSON.parse(fs.readFileSync(attendeesPath, "utf8"));
-    res.json({ count: attendees.length, attendees });
-  } catch (err) {
-    console.error("ERROR reading attendees:", err);
-    res.status(500).json({ success: false, message: "Could not load attendees." });
+    attendees = JSON.parse(fs.readFileSync(attendeesPath));
+  } catch (e) {
+    attendees = [];
   }
+
+  res.json({ count: attendees.length, attendees });
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
