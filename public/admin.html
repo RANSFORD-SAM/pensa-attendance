@@ -3,30 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Dashboard</title>
+  <title>PENSA Admin Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      background-color: #f4f4f4;
+      background: #f4f4f4;
     }
 
     h1 {
       text-align: center;
-      color: #333;
+    }
+
+    #total {
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
-      background-color: white;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      background: #fff;
     }
 
     th, td {
       padding: 12px;
-      border: 1px solid #ddd;
+      border: 1px solid #ccc;
       text-align: left;
     }
 
@@ -34,16 +38,36 @@
       background-color: #eee;
     }
 
-    #total {
-      margin-top: 15px;
-      font-weight: bold;
+    .controls {
       text-align: center;
+      margin-top: 20px;
+    }
+
+    .btn {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
 <body>
-  <h1>Admin Dashboard</h1>
+
+  <h1>Admin Dashboard - PENSA Attendance</h1>
   <div id="total">Total attendees: 0</div>
+
+  <div class="controls">
+    <a href="/export" class="btn" download>📥 Download Excel</a>
+  </div>
+
   <table id="attendeeTable">
     <thead>
       <tr>
@@ -54,29 +78,29 @@
   </table>
 
   <script>
-    async function fetchAttendees() {
-      try {
-        const res = await fetch("/attendees");
-        const data = await res.json();
+    function loadAttendees() {
+      fetch("/attendees")
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.querySelector("#attendeeTable tbody");
+          tbody.innerHTML = "";
 
-        const tbody = document.querySelector("#attendeeTable tbody");
-        tbody.innerHTML = "";
+          data.attendees.forEach(attendee => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${attendee.name}</td>`;
+            tbody.appendChild(row);
+          });
 
-        data.attendees.forEach(attendee => {
-          const row = document.createElement("tr");
-          row.innerHTML = `<td>${attendee.name}</td>`;
-          tbody.appendChild(row);
+          document.getElementById("total").textContent = `Total attendees: ${data.count}`;
+        })
+        .catch(err => {
+          console.error("Error loading attendees:", err);
         });
-
-        document.getElementById("total").textContent = `Total attendees: ${data.count}`;
-      } catch (err) {
-        document.getElementById("total").textContent = "Error loading attendees.";
-        console.error(err);
-      }
     }
 
-    fetchAttendees();
-    setInterval(fetchAttendees, 10000); // update every 10 seconds
+    loadAttendees();
+    setInterval(loadAttendees, 10000); // Refresh every 10 seconds
   </script>
+
 </body>
 </html>
